@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F766E">
+<meta name="description" content="Ghar Kharcha: bills, due dates, shared expenses and who-owes-whom for your home.">
+<title>Ghar Kharcha</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --brand:#0F766E; --brand2:#14B8A6; --accent:#F59E0B;
+  --bg:#F4F7F6; --card:#FFFFFF; --text:#14201E; --muted:#6B7B78; --line:#E2E8E7;
+  --danger:#DC2626; --ok:#16A34A; --warn:#D97706; --info:#64748B;
+  --shadow:0 6px 20px rgba(15,23,42,.07); --r:18px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--bg:#0B1514;--card:#13221F;--text:#E6F2F0;--muted:#8FA8A3;--line:#1F3532;--shadow:none}
+}
+:root[data-theme="dark"]{--bg:#0B1514;--card:#13221F;--text:#E6F2F0;--muted:#8FA8A3;--line:#1F3532;--shadow:none}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(88px + env(safe-area-inset-bottom))}
+.top{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+.top h1{font-size:20px;margin:0;font-weight:700}
+.icon-btn{background:rgba(255,255,255,.18);border:0;color:#fff;width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer}
+main{max-width:680px;margin:0 auto;padding:16px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;justify-content:space-around;background:var(--card);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto}
+nav.tabs button{flex:1;background:none;border:0;color:var(--muted);font-size:12px;padding:6px 0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs .ic{font-size:22px}
+nav.tabs button.on{color:var(--brand);font-weight:700}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin:0 0 14px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.hero{background:linear-gradient(135deg,var(--brand),#0E7490);color:#fff;border:0}
+.hero .muted{color:rgba(255,255,255,.85)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.muted{color:var(--muted);font-size:13px}
+.tiny{font-size:12px}
+.big{font-size:30px;font-weight:800;letter-spacing:-.5px}
+h2{font-size:17px;margin:22px 4px 10px}
+.chip{display:inline-block;padding:7px 14px;border-radius:99px;font-size:13px;font-weight:600;background:var(--line);color:var(--text);border:0;cursor:pointer;margin:4px 6px 4px 0}
+.chip.on{background:var(--brand);color:#fff}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;color:#fff;text-transform:uppercase;letter-spacing:.4px}
+.btn{display:block;width:100%;background:var(--brand);color:#fff;border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;text-align:center}
+.btn.sec{background:transparent;color:var(--brand);border:1.5px solid var(--brand)}
+.btn.danger{background:var(--danger)}
+.btn.sm{display:inline-block;width:auto;padding:8px 14px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.55}
+.fab{position:fixed;right:18px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:9;background:var(--accent);color:#1B1200;border:0;border-radius:99px;padding:14px 20px;font-weight:800;font-size:15px;box-shadow:0 10px 24px rgba(245,158,11,.35);cursor:pointer}
+.avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;flex:0 0 42px;font-size:15px}
+.list>*{margin-bottom:10px}
+.bars{display:flex;align-items:flex-end;gap:10px;height:130px;margin-top:6px}
+.bars .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--muted);min-width:0}
+.bars .b i{display:block;width:100%;max-width:34px;background:linear-gradient(var(--brand2),var(--brand));border-radius:8px 8px 4px 4px;min-height:4px;margin-top:4px}
+.bars .b.cur i{background:linear-gradient(var(--accent),var(--warn))}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.cal .dow{font-size:11px;color:var(--muted);font-weight:700}
+.cal .d{padding:7px 0 8px;border-radius:12px;font-size:14px;background:var(--bg);min-height:46px}
+.cal .d.today{outline:2px solid var(--brand)}
+.cal .dots{display:flex;gap:3px;justify-content:center;margin-top:4px;flex-wrap:wrap}
+.cal .dots i{width:6px;height:6px;border-radius:50%;display:block}
+.cal .blank{background:none}
+input,select{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font-size:16px;background:var(--card);color:var(--text);font-family:inherit}
+input:focus,select:focus{outline:none;border-color:var(--brand)}
+label.f{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:600}
+.checks label{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px;margin:0;color:var(--text)}
+.checks input[type=checkbox]{width:20px;height:20px;accent-color:var(--brand)}
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);color:var(--text);width:100%;max-width:680px;border-radius:24px 24px 0 0;padding:14px 18px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}
+.sheet .grab{width:44px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 12px}
+.sheet h3{margin:0;font-size:19px}
+.close{background:var(--line);color:var(--text);border:0;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer}
+.toast{position:fixed;left:50%;top:76px;transform:translateX(-50%);background:#0F172A;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;z-index:30;box-shadow:var(--shadow);max-width:90%;text-align:center}
+.empty{text-align:center;padding:24px 10px}
+.empty .e{font-size:42px;margin-bottom:6px}
+.banner{display:flex;justify-content:space-between;align-items:center;gap:10px;background:linear-gradient(135deg,#FEF3C7,#FDE68A);color:#78350F;border-radius:var(--r);padding:14px 16px;margin-bottom:14px;border:0;width:100%;text-align:left;font-size:14px;cursor:pointer}
+.onb{min-height:72vh;display:flex;flex-direction:column;justify-content:center}
+.onb h2{font-size:26px;margin:8px 0 8px}
+.steps{display:flex;gap:6px;margin-bottom:16px}
+.steps i{flex:1;height:5px;border-radius:9px;background:var(--line)}
+.steps i.on{background:var(--brand)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top"><h1 id="title">🏠 Ghar Kharcha</h1><button class="icon-btn" data-act="settings" aria-label="Settings">⚙️</button></header>
+<main id="app"></main>
+<nav class="tabs" id="nav"></nav>
+<div id="sheet-root"></div>
+<input type="file" id="restore-file" accept="application/json" hidden>
+
+<script>
+// ===================== Constants =====================
+const KEY = 'ghar_kharcha_v2';
+const FREE = {bills: 5, members: 2, history: 90};
+const TEST_MODE = location.search.includes('test=1');
+const canNotify = 'Notification' in window;
+const BILL_CATS = ['Electricity','Water','Gas','Internet','Phone','Rent','EMI','Subscription','Other'];
+const EXP_CATS = ['Food','Groceries','Transport','Shopping','Health','Entertainment','Bills','Other'];
+const ICON = {Electricity:'💡',Water:'💧',Gas:'🔥',Internet:'🌐',Phone:'📱',Rent:'🏠',EMI:'🏦',
+  Subscription:'📺',Other:'🧾',Food:'🍛',Groceries:'🛒',Transport:'🚕',Shopping:'🛍️',Health:'💊',
+  Entertainment:'🎬',Bills:'🧾'};
+const TEMPLATES = [
+  {name:'Rent', category:'Rent', dueDay:1},
+  {name:'Electricity', category:'Electricity', dueDay:5},
+  {name:'Internet', category:'Internet', dueDay:10},
+  {name:'Mobile recharge', category:'Phone', dueDay:15},
+  {name:'Gas cylinder', category:'Gas', dueDay:20},
+  {name:'Water', category:'Water', dueDay:1},
+  {name:'Streaming subscription', category:'Subscription', dueDay:12},
+];
+const COLORS = ['#0F766E','#E76F51','#7C3AED','#D97706','#2563EB','#DB2777','#059669','#4B5563'];
+const STATUS = {
+  paid:{label:'Paid', color:'var(--ok)'},
+  overdue:{label:'Overdue', color:'var(--danger)'},
+  dueSoon:{label:'Due soon', color:'var(--warn)'},
+  upcoming:{label:'Upcoming', color:'var(--info)'},
+};
+const TABS = [
+  {k:'home', i:'🏠', l:'Home'},
+  {k:'bills', i:'🧾', l:'Bills'},
+  {k:'spend', i:'💸', l:'Spend'},
+  {k:'family', i:'👨‍👩‍👧', l:'Family'},
+];
+
+// ===================== Storage =====================
+function freshDb(){
+  return {v:2, household:'Our Home', members:[], bills:[], expenses:[], payments:[],
+    premium:false, onboarded:false, nextId:1, notified:{}, reminders:false, theme:'auto'};
+}
+function load(){
+  try {
+    const d = JSON.parse(localStorage.getItem(KEY));
+    if (d && d.v === 2) return Object.assign(freshDb(), d);
+  } catch (e) {}
+  return freshDb();
+}
+let db = load();
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(db)); }
+  catch (e) { toast('Storage is full or blocked on this device'); }
+}
+function newId(){ return db.nextId++; }
+
+// ===================== Dates, money, helpers =====================
+const pad = n => String(n).padStart(2, '0');
+const monthKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+const dayKey = d => `${monthKey(d)}-${pad(d.getDate())}`;
+const parseDay = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addMonths = (mk, n) => { const [y, m] = mk.split('-').map(Number); return monthKey(new Date(y, m - 1 + n, 1)); };
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const prettyDate = d => d.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'});
+const shortDay = d => d.toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+const monthLabel = d => d.toLocaleDateString('en-IN', {month:'long', year:'numeric'});
+const monShort = d => d.toLocaleDateString('en-IN', {month:'short'});
+const rupees = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const rupeesExact = paise => '₹' + (paise / 100).toLocaleString('en-IN', {maximumFractionDigits: 2});
+const sum = list => list.reduce((s, x) => s + x.amount, 0);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ord = d => (d % 10 === 1 && d !== 11) ? 'st' : (d % 10 === 2 && d !== 12) ? 'nd' : (d % 10 === 3 && d !== 13) ? 'rd' : 'th';
+const greet = () => { const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; };
+
+const me = () => db.members[0];
+const memberById = id => db.members.find(m => String(m.id) === String(id));
+const memberName = id => (memberById(id) || {name: 'Former member'}).name;
+const initials = n => n.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+// ===================== Bill logic =====================
+function dueDateIn(b, now){
+  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return new Date(now.getFullYear(), now.getMonth(), Math.min(b.dueDay, last));
+}
+const isPaid = (b, now) => b.paidMonths.includes(monthKey(now));
+function daysUntil(b, now){ return Math.round((dueDateIn(b, now) - startOfDay(now)) / 864e5); }
+function status(b, now){
+  if (isPaid(b, now)) return 'paid';
+  const d = daysUntil(b, now);
+  if (d < 0) return 'overdue';
+  if (d <= 3) return 'dueSoon';
+  return 'upcoming';
+}
+// Consecutive past months where every bill that existed was paid.
+// The current month counts only after it is complete.
+function onTimeStreak(now){
+  const active = mk => db.bills.filter(b => b.createdMonth <= mk);
+  const allPaid = mk => active(mk).every(b => b.paidMonths.includes(mk));
+  let m = monthKey(now);
+  if (!allPaid(m)) m = addMonths(m, -1);
+  let streak = 0;
+  for (let i = 0; i < 36; i++){
+    if (!active(m).length || !allPaid(m)) break;
+    streak++;
+    m = addMonths(m, -1);
+  }
+  return streak;
+}
+
+// ===================== Family balances (in paise, to avoid rounding errors) =====================
+function balances(){
+  const bal = {};
+  db.members.forEach(m => bal[m.id] = 0);
+  db.expenses.forEach(e => {
+    const share = e.splitWith.filter(id => memberById(id));
+    if (!share.length) return;
+    const total = Math.round(e.amount * 100);
+    const base = Math.floor(total / share.length);
+    const rem = total - base * share.length;
+    share.forEach((id, i) => { bal[id] = (bal[id] || 0) - (base + (i < rem ? 1 : 0)); });
+    bal[e.paidBy] = (bal[e.paidBy] || 0) + total;
+  });
+  db.payments.forEach(p => {
+    const c = Math.round(p.amount * 100);
+    bal[p.from] = (bal[p.from] || 0) + c;
+    bal[p.to] = (bal[p.to] || 0) - c;
+  });
+  return bal; // positive = is owed money, negative = owes money
+}
+// Smallest set of payments that settles everyone.
+function settlements(){
+  const bal = balances();
+  const creditors = [], debtors = [];
+  Object.entries(bal).forEach(([id, v]) => {
+    if (v > 0) creditors.push({id: Number(id), v});
+    else if (v < 0) debtors.push({id: Number(id), v: -v});
+  });
+  creditors.sort((a, b) => b.v - a.v);
+  debtors.sort((a, b) => b.v - a.v);
+  const out = [];
+  let i = 0, j = 0;
+  while (i < debtors.length && j < creditors.length){
+    const amt = Math.min(debtors[i].v, creditors[j].v);
+    out.push({from: debtors[i].id, to: creditors[j].id, paise: amt});
+    debtors[i].v -= amt;
+    creditors[j].v -= amt;
+    if (debtors[i].v === 0) i++;
+    if (creditors[j].v === 0) j++;
+  }
+  return out;
+}
+
+// ===================== Expense helpers =====================
+function visibleExpenses(){
+  if (db.premium) return db.expenses;
+  const cutoff = startOfDay(new Date());
+  cutoff.setDate(cutoff.getDate() - FREE.history);
+  return db.expenses.filter(e => parseDay(e.date) >= cutoff);
+}
+function spentIn(mk){ return sum(db.expenses.filter(e => e.date.startsWith(mk))); }
+
+// ===================== UI state and helpers =====================
+let view = {tab: 'home', spendFilter: 'all', onb: 1};
+const $ = s => document.querySelector(s);
+
+function toast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+function openSheet(title, body){
+  $('#sheet-root').innerHTML = `<div class="sheet-bg" data-act="close-sheet">
+    <div class="sheet" role="dialog" aria-modal="true">
+      <div class="grab"></div>
+      <div class="row" style="margin-bottom:12px"><h3>${title}</h3>
+        <button class="close" data-act="close-sheet" aria-label="Close">✕</button></div>
+      ${body}
+    </div></div>`;
+}
+function closeSheet(){ $('#sheet-root').innerHTML = ''; }
+function applyTheme(){ document.documentElement.setAttribute('data-theme', db.theme); }
+
+function render(){
+  $('#title').textContent = '🏠 ' + (db.onboarded ? db.household : 'Ghar Kharcha');
+  if (!db.onboarded){
+    $('#nav').innerHTML = '';
+    $('#app').innerHTML = onboarding();
+    return;
+  }
+  $('#nav').innerHTML = TABS.map(t =>
+    `<button class="${view.tab === t.k ? 'on' : ''}" data-tab="${t.k}"><span class="ic">${t.i}</span>${t.l}</button>`
+  ).join('');
+  const screens = {home: homeView, bills: billsView, spend: spendView, family: familyView};
+  $('#app').innerHTML = screens[view.tab]();
+}
+
+// ===================== Shared components =====================
+function billRow(b, now){
+  const s = status(b, now);
+  const st = STATUS[s];
+  const d = daysUntil(b, now);
+  const when = s === 'paid' ? 'Paid this month'
+    : d < 0 ? `${-d} day${d === -1 ? '' : 's'} overdue`
+    : d === 0 ? 'Due today'
+    : `Due in ${d} day${d === 1 ? '' : 's'}`;
+  const action = s === 'paid'
+    ? `<button class="btn sm sec" data-act="unpay" data-id="${b.id}">Undo</button>`
+    : `<button class="btn sm" data-act="pay" data-id="${b.id}">Mark paid</button>`;
+  return `<div class="card row">
+    <div class="row" style="justify-content:flex-start;gap:12px;min-width:0;cursor:pointer" data-act="edit-bill" data-id="${b.id}">
+      <div class="avatar" style="background:var(--line);color:var(--text);font-size:18px">${ICON[b.category] || '🧾'}</div>
+      <div style="min-width:0">
+        <div style="font-weight:700">${esc(b.name)}</div>
+        <div class="muted tiny"><span class="pill" style="background:${st.color}">${st.label}</span> ${when} · ${shortDay(dueDateIn(b, now))}</div>
+      </div>
+    </div>
+    <div style="text-align:right;flex:0 0 auto">
+      <div style="font-weight:800;margin-bottom:6px">${rupees(b.amount)}</div>${action}
+    </div></div>`;
+}
+function settleRow(s){
+  return `<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line)">
+    <span><b>${esc(memberName(s.from))}</b> owes <b>${esc(memberName(s.to))}</b><br>
+      <span class="tiny muted">${rupeesExact(s.paise)}</span></span>
+    <button class="btn sm" data-act="settle" data-from="${s.from}" data-to="${s.to}" data-amount="${s.paise / 100}">Record payment</button>
+  </div>`;
+}
+function expRow(e){
+  const n = e.splitWith.length;
+  const split = n > 1 ? ` · split ${n} ways` : '';
+  return `<div class="card row" style="cursor:pointer" data-act="del-expense" data-id="${e.id}">
+    <div class="row" style="justify-content:flex-start;gap:12px;min-width:0">
+      <div class="avatar" style="background:var(--line);color:var(--text);font-size:18px">${ICON[e.category] || '🧾'}</div>
+      <div style="min-width:0">
+        <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.title)}</div>
+        <div class="muted tiny">${esc(e.category)} · paid by ${esc(memberName(e.paidBy))}${split}</div>
+      </div>
+    </div>
+    <div style="font-weight:800;flex:0 0 auto">${rupees(e.amount)}</div></div>`;
+}
+function fab(act, label){ return `<button class="fab" data-act="${act}">+ ${label}</button>`; }
+
+// ===================== Screens =====================
+function homeView(){
+  const now = new Date();
+  const mk = monthKey(now);
+  const paidN = db.bills.filter(b => isPaid(b, now)).length;
+  const streak = onTimeStreak(now);
+  const soon = db.bills
+    .filter(b => !isPaid(b, now) && daysUntil(b, now) <= 7)
+    .sort((a, b) => daysUntil(a, now) - daysUntil(b, now));
+
+  const hist = [];
+  for (let i = 5; i >= 0; i--){
+    const k = addMonths(mk, -i);
+    hist.push({label: monShort(parseDay(k + '-01')), total: spentIn(k), cur: i === 0});
+  }
+  const maxH = Math.max(1, ...hist.map(h => h.total));
+
+  const sets = settlements().slice(0, 3);
+  const notifyOn = db.reminders && canNotify && Notification.permission === 'granted';
+  const reminderCard = canNotify
+    ? `<div class="card row"><span>${notifyOn ? '🔔 Bill reminders are on' : '🔕 Bill reminders are off'}</span>
+         ${notifyOn ? '' : '<button class="btn sm sec" data-act="reminders-on">Turn on</button>'}</div>`
+    : '';
+  const premiumBanner = db.premium ? '' :
+    `<button class="banner" data-act="premium"><span>✨ <b>Go Premium</b><br>
+      <span class="tiny">Unlimited bills, family members and full history</span></span><span>›</span></button>`;
+
+  return `${premiumBanner}
+    <p class="muted" style="margin:4px 4px 12px">${greet()}, <b style="color:var(--text)">${esc(me().name)}</b> 👋</p>
+    <div class="card hero">
+      <div class="muted">${monthLabel(now)} spending</div>
+      <div class="big">${rupees(spentIn(mk))}</div>
+      <div class="row" style="margin-top:10px">
+        <span class="muted">${paidN} of ${db.bills.length} bills paid</span>
+        <span class="pill" style="background:rgba(255,255,255,.22)">🔥 ${streak} month${streak === 1 ? '' : 's'} on time</span>
+      </div>
+    </div>
+    <div class="row" style="gap:8px;margin-bottom:6px">
+      <button class="btn sec sm" style="flex:1" data-act="new-expense">+ Expense</button>
+      <button class="btn sec sm" style="flex:1" data-act="new-bill">+ Bill</button>
+      <button class="btn sec sm" style="flex:1" data-act="new-payment">+ Payment</button>
+    </div>
+    <h2>Due in the next 7 days</h2>
+    <div class="list">${soon.length ? soon.map(b => billRow(b, now)).join('')
+      : '<div class="card empty"><div class="e">🎉</div><div><b>Nothing due this week</b></div></div>'}</div>
+    <h2>Last 6 months</h2>
+    <div class="card"><div class="bars">${hist.map(h =>
+      `<div class="b ${h.cur ? 'cur' : ''}"><span class="tiny">${rupees(h.total)}</span>
+       <i style="height:${Math.max(4, h.total / maxH * 100)}%"></i>${h.label}</div>`).join('')}</div></div>
+    <h2>Settle up</h2>
+    <div class="card">${sets.length ? sets.map(settleRow).join('')
+      : '<div class="row"><span>Everyone is square ✨</span></div>'}</div>
+    ${reminderCard}`;
+}
+
+function billsView(){
+  const now = new Date();
+  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const firstDow = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+  const dow = ['S','M','T','W','T','F','S'].map(d => `<div class="dow">${d}</div>`).join('');
+  const blanks = '<div class="blank"></div>'.repeat(firstDow);
+  let cells = '';
+  for (let d = 1; d <= last; d++){
+    const dots = db.bills
+      .filter(b => Math.min(b.dueDay, last) === d)
+      .map(b => `<i style="background:${STATUS[status(b, now)].color}"></i>`).join('');
+    cells += `<div class="d ${d === now.getDate() ? 'today' : ''}">${d}<div class="dots">${dots}</div></div>`;
+  }
+  const bills = [...db.bills].sort((a, b) => a.dueDay - b.dueDay);
+  const freeNote = db.premium ? '' :
+    `<p class="muted tiny">Free plan: ${db.bills.length} of ${FREE.bills} bills used.</p>`;
+  const list = bills.length
+    ? `<div class="list">${bills.map(b => billRow(b, now)).join('')}</div>`
+    : `<div class="card empty"><div class="e">🧾</div><div><b>No bills yet</b></div>
+       <p class="muted">Tap "+ Bill" to add rent, electricity, phone or EMI. Setup can add common bills for you.</p></div>`;
+
+  return `<div class="card">
+      <div class="row" style="margin-bottom:10px"><b>${monthLabel(now)}</b>
+        <span class="tiny"><span style="color:var(--ok)">● paid</span> <span style="color:var(--warn)">● due soon</span> <span style="color:var(--danger)">● overdue</span></span></div>
+      <div class="cal">${dow}${blanks}${cells}</div></div>
+    <h2>All bills</h2>
+    ${list}
+    ${freeNote}
+    ${fab('new-bill', 'Bill')}`;
+}
+
+function spendView(){
+  const now = new Date();
+  const list = visibleExpenses();
+  const f = String(view.spendFilter);
+  const filtered = f === 'all' ? list : list.filter(e => String(e.paidBy) === f);
+  const chips = `<button class="chip ${f === 'all' ? 'on' : ''}" data-act="filter" data-id="all">Everyone</button>` +
+    db.members.map(m => `<button class="chip ${f === String(m.id) ? 'on' : ''}" data-act="filter" data-id="${m.id}">${esc(m.name)}</button>`).join('');
+
+  const groups = {};
+  filtered.forEach(e => { (groups[e.date] = groups[e.date] || []).push(e); });
+  const keys = Object.keys(groups).sort().reverse();
+  const todayK = dayKey(now);
+  const yK = dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1));
+  const body = keys.length
+    ? keys.map(k => {
+        const label = k === todayK ? 'Today' : k === yK ? 'Yesterday' : prettyDate(parseDay(k));
+        return `<h2>${label}</h2><div class="list">${groups[k].map(expRow).join('')}</div>`;
+      }).join('')
+    : `<div class="card empty"><div class="e">💸</div><div><b>No expenses yet</b></div>
+       <p class="muted">Add groceries, petrol or dinner and split it with family.</p></div>`;
+
+  const histNote = db.premium ? '' :
+    `<button class="banner" data-act="premium"><span>🔒 Showing the last ${FREE.history} days.<br>
+      <span class="tiny">Go Premium for full history and Excel export</span></span><span>›</span></button>`;
+
+  return `<div class="card hero"><div class="muted">${monthLabel(now)} total</div>
+      <div class="big">${rupees(spentIn(monthKey(now)))}</div></div>
+    <div style="overflow-x:auto;white-space:nowrap;margin-bottom:4px">${chips}</div>
+    ${histNote}${body}
+    ${fab('new-expense', 'Expense')}`;
+}
+
+function familyView(){
+  const bal = balances();
+  const cur = me();
+  const members = db.members.map(m => {
+    const v = bal[m.id] || 0;
+    const txt = Math.abs(v) < 1 ? 'Settled up'
+      : v > 0 ? `Is owed ${rupeesExact(v)}` : `Owes ${rupeesExact(-v)}`;
+    const col = v > 0 ? 'var(--ok)' : v < 0 ? 'var(--danger)' : 'var(--muted)';
+    const inUse = db.expenses.some(e => String(e.paidBy) === String(m.id) || e.splitWith.map(String).includes(String(m.id)));
+    const remove = (m === cur || inUse) ? '' : `<button class="btn sm sec" data-act="del-member" data-id="${m.id}">Remove</button>`;
+    return `<div class="card row">
+      <div class="row" style="justify-content:flex-start;gap:12px">
+        <div class="avatar" style="background:${m.color}">${esc(initials(m.name))}</div>
+        <div><b>${esc(m.name)}</b>${m === cur ? ' <span class="muted tiny">(you)</span>' : ''}
+          <div class="tiny" style="color:${col}">${txt}</div></div>
+      </div>${remove}</div>`;
+  }).join('');
+
+  const atLimit = db.members.length >= (db.premium ? Infinity : FREE.members);
+  const payments = [...db.payments].sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id).slice(0, 5);
+  const sets = settlements();
+
+  return `<h2 style="margin-top:4px">Members</h2>
+    <div class="list">${members}</div>
+    <button class="btn sec" data-act="${atLimit ? 'premium' : 'new-member'}">${atLimit ? '🔒 Add a family member (Premium)' : '+ Add family member'}</button>
+    <h2>Who owes whom</h2>
+    <div class="card">${sets.length ? sets.map(settleRow).join('')
+      : '<div class="row"><span>Everyone is square ✨</span></div>'}</div>
+    <h2>Recent payments</h2>
+    <div class="card">${payments.length ? payments.map(p =>
+      `<div class="row" style="padding:6px 0"><span>${esc(memberName(p.from))} → ${esc(memberName(p.to))}<br>
+        <span class="tiny muted">${prettyDate(parseDay(p.date))}</span></span>
+        <b>${rupeesExact(Math.round(p.amount * 100))}</b></div>`).join('')
+      : '<span class="muted">No payments recorded yet.</span>'}</div>
+    <p class="muted tiny">Expenses are split equally among the people you choose. Balances update as you add expenses and payments.</p>`;
+}
+
+// ===================== Onboarding (first launch) =====================
+function onboarding(){
+  const step = view.onb;
+  const bar = `<div class="steps">${[1,2,3].map(i => `<i class="${i <= step ? 'on' : ''}"></i>`).join('')}</div>`;
+
+  if (step === 1) return `<div class="onb"><div class="card">${bar}
+    <div style="font-size:44px">👋</div>
+    <h2>Welcome to Ghar Kharcha</h2>
+    <p class="muted">Track bills and due dates, share expenses with family, and see who owes whom. No spreadsheets.</p>
+    <form data-form="onb1">
+      <label class="f">Your name</label>
+      <input name="me" required maxlength="30" placeholder="e.g. Divyanshu">
+      <label class="f">Household name (optional)</label>
+      <input name="home" maxlength="40" placeholder="e.g. Patel Family">
+      <div style="margin-top:18px"><button class="btn" type="submit">Continue →</button></div>
+    </form></div></div>`;
+
+  if (step === 2){
+    const rows = TEMPLATES.map((t, i) => `<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line)">
+      <label style="display:flex;align-items:center;gap:10px;margin:0;font-size:15px;color:var(--text)">
+        <input type="checkbox" name="t${i}" value="1" ${i < FREE.bills ? 'checked' : ''} style="width:20px;height:20px;accent-color:var(--brand)">
+        ${ICON[t.category]} ${esc(t.name)} <span class="muted tiny">· ${t.dueDay}${ord(t.dueDay)}</span></label>
+      <input name="a${i}" type="number" inputmode="decimal" min="0" step="any" placeholder="₹ amount" style="width:120px;padding:9px"></div>`).join('');
+    return `<div class="onb"><div class="card">${bar}
+      <h2>Add your usual bills</h2>
+      <p class="muted">Tick the bills you pay every month and enter the amount. You can change these anytime. Free plan includes ${FREE.bills} bills.</p>
+      <form data-form="onb2">${rows}
+        <div style="margin-top:18px"><button class="btn" type="submit">Continue →</button></div>
+        <div style="margin-top:10px"><button type="button" class="btn sec" data-act="onb-skip">Skip for now</button></div>
+      </form></div></div>`;
+  }
+
+  return `<div class="onb"><div class="card">${bar}
+    <h2>Add family (optional)</h2>
+    <p class="muted">Add your partner, sibling or roommate to split expenses. Free plan includes ${FREE.members} people.</p>
+    <form data-form="onb3">
+      <label class="f">Their name</label>
+      <input name="mate" maxlength="30" placeholder="e.g. Priya">
+      <div style="margin-top:18px"><button class="btn" type="submit">Finish setup 🎉</button></div>
+      <div style="margin-top:10px"><button type="button" class="btn sec" data-act="finish-onb">Skip and finish</button></div>
+    </form></div></div>`;
+}
+function finishOnboarding(){
+  db.onboarded = true;
+  save();
+  toast(`Welcome, ${me().name}! 🎉`);
+  render();
+}
+
+// ===================== Forms (shown in sheets) =====================
+function expenseForm(){
+  const today = dayKey(new Date());
+  const cats = EXP_CATS.map(c => `<option value="${c}">${ICON[c]} ${c}</option>`).join('');
+  const payers = db.members.map(m => `<option value="${m.id}" ${m === me() ? 'selected' : ''}>${esc(m.name)}</option>`).join('');
+  const splits = db.members.map(m => `<label><input type="checkbox" name="split" value="${m.id}" checked> ${esc(m.name)}</label>`).join('');
+  return `<form data-form="expense">
+    <label class="f">What was it for?</label>
+    <input name="title" required maxlength="60" placeholder="e.g. Vegetables, Petrol, Dinner">
+    <label class="f">Amount (₹)</label>
+    <input name="amount" type="number" inputmode="decimal" min="1" step="any" required>
+    <label class="f">Category</label>
+    <select name="category">${cats}</select>
+    <label class="f">Date</label>
+    <input name="date" type="date" value="${today}" max="${today}">
+    <label class="f">Paid by</label>
+    <select name="paidBy">${payers}</select>
+    <label class="f">Split among</label>
+    <div class="checks">${splits}</div>
+    <label class="f">Note (optional)</label>
+    <input name="note" maxlength="100">
+    <div style="margin-top:20px"><button class="btn" type="submit">Save expense</button></div>
+  </form>`;
+}
+function billForm(b){
+  const v = b || {name: '', amount: '', category: 'Electricity', dueDay: 1};
+  const cats = BILL_CATS.map(c => `<option value="${c}" ${c === v.category ? 'selected' : ''}>${ICON[c]} ${c}</option>`).join('');
+  const days = Array.from({length: 31}, (_, i) => i + 1)
+    .map(d => `<option value="${d}" ${d === v.dueDay ? 'selected' : ''}>${d}${ord(d)}</option>`).join('');
+  const del = b ? `<div style="margin-top:12px"><button type="button" class="btn danger" data-act="del-bill" data-id="${b.id}">Delete this bill</button></div>` : '';
+  return `<form data-form="bill" data-id="${b ? b.id : ''}">
+    <label class="f">Bill name</label>
+    <input name="name" required maxlength="40" value="${esc(v.name)}" placeholder="e.g. Electricity – home">
+    <label class="f">Amount (₹)</label>
+    <input name="amount" type="number" inputmode="decimal" min="1" step="any" required value="${v.amount}">
+    <label class="f">Category</label>
+    <select name="category">${cats}</select>
+    <label class="f">Due date every month</label>
+    <select name="dueDay">${days}</select>
+    <div style="margin-top:20px"><button class="btn" type="submit">${b ? 'Save changes' : 'Add bill'}</button></div>
+    ${del}
+  </form>`;
+}
+function paymentForm(from, to, amount){
+  const opts = sel => db.members.map(m => `<option value="${m.id}" ${String(m.id) === String(sel) ? 'selected' : ''}>${esc(m.name)}</option>`).join('');
+  const f = from ?? (db.members[1] || me()).id;
+  const t = to ?? me().id;
+  const today = dayKey(new Date());
+  return `<form data-form="payment">
+    <p class="muted">Record money that changed hands so balances stay accurate.</p>
+    <label class="f">Who paid?</label>
+    <select name="from">${opts(f)}</select>
+    <label class="f">Paid to</label>
+    <select name="to">${opts(t)}</select>
+    <label class="f">Amount (₹)</label>
+    <input name="amount" type="number" inputmode="decimal" min="1" step="any" required value="${amount ?? ''}">
+    <label class="f">Date</label>
+    <input name="date" type="date" value="${today}" max="${today}">
+    <div style="margin-top:20px"><button class="btn" type="submit">Save payment</button></div>
+  </form>`;
+}
+function memberForm(){
+  return `<form data-form="member">
+    <label class="f">Name</label>
+    <input name="name" required maxlength="30" placeholder="e.g. Priya">
+    <div style="margin-top:20px"><button class="btn" type="submit">Add to family</button></div>
+  </form>`;
+}
+function premiumSheet(){
+  return `<p>Ghar Kharcha Premium is for families who want everything in one place.</p>
+    <ul style="line-height:1.9;padding-left:18px;margin:8px 0 14px">
+      <li>Unlimited bills</li><li>Unlimited family members</li>
+      <li>Full expense history</li><li>Excel (CSV) export</li></ul>
+    <div class="card" style="text-align:center">
+      <div class="big">₹99<span class="muted" style="font-size:15px"> / month</span></div>
+      <div class="muted">or ₹899 a year, save ₹289</div></div>
+    <p class="muted tiny">Payments are not connected in this version. Google Play subscriptions will be added before launch.</p>
+    ${TEST_MODE
+      ? '<button class="btn" data-act="unlock-test">Unlock for testing</button>'
+      : '<button class="btn" disabled>Subscribe (coming soon)</button>'}`;
+}
+function settingsSheet(){
+  const remindersBtn = canNotify
+    ? (db.reminders
+        ? '<button class="btn sm sec" data-act="reminders-off">Turn off</button>'
+        : '<button class="btn sm" data-act="reminders-on">Turn on</button>')
+    : '<span class="muted tiny">Not supported on this device</span>';
+  return `<form data-form="household">
+      <label class="f">Household name</label>
+      <input name="home" required maxlength="40" value="${esc(db.household)}">
+      <div style="margin-top:10px"><button class="btn sec sm" type="submit">Save name</button></div>
+    </form>
+    <h2>Preferences</h2>
+    <div class="card row"><span>Theme</span>
+      <select data-change="theme" style="width:auto">
+        <option value="auto" ${db.theme === 'auto' ? 'selected' : ''}>Auto</option>
+        <option value="light" ${db.theme === 'light' ? 'selected' : ''}>Light</option>
+        <option value="dark" ${db.theme === 'dark' ? 'selected' : ''}>Dark</option>
+      </select></div>
+    <div class="card row"><span>Bill reminders</span>${remindersBtn}</div>
+    <h2>Your data</h2>
+    <div class="card list">
+      <button class="btn sec" data-act="backup">⬇️ Download backup (file)</button>
+      <button class="btn sec" data-act="restore">⬆️ Restore from backup</button>
+      <button class="btn sec" data-act="export">📄 Export expenses to Excel ${db.premium ? '' : '🔒'}</button>
+    </div>
+    <p class="muted tiny">Your data stays on this device. Download a backup now and then. Clearing browser data erases it.</p>
+    <h2>Plan</h2>
+    <div class="card row"><span>${db.premium ? '✨ Premium' : 'Free plan'}</span>
+      ${db.premium ? '' : '<button class="btn sm" data-act="premium">Upgrade</button>'}</div>
+    <button class="btn danger" data-act="reset">Erase all data</button>`;
+}
+
+// ===================== Utilities: download, export, reminders =====================
+function download(name, mime, content){
+  const url = URL.createObjectURL(new Blob([content], {type: mime}));
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function exportCsv(){
+  const rows = [['date','title','category','amount_rupees','paid_by','split_among','note']];
+  [...db.expenses].sort((a, b) => a.date.localeCompare(b.date)).forEach(e =>
+    rows.push([e.date, e.title, e.category, e.amount, memberName(e.paidBy), e.splitWith.map(id => memberName(id)).join('; '), e.note || '']));
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  download(`ghar-kharcha-expenses-${dayKey(new Date())}.csv`, 'text/csv', '﻿' + csv);
+}
+async function enableReminders(){
+  if (!canNotify) return;
+  const perm = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission();
+  if (perm === 'granted'){
+    db.reminders = true; save();
+    toast('Reminders on. Keep the app installed or open for best results.');
+    checkReminders();
+  } else {
+    toast('Notifications are blocked. Allow them in your browser settings.');
+  }
+  closeSheet(); render();
+}
+function disableReminders(){
+  db.reminders = false; save(); closeSheet(); render();
+}
+function checkReminders(){
+  if (!canNotify || !db.reminders || !db.onboarded || Notification.permission !== 'granted') return;
+  const now = new Date();
+  const today = dayKey(now);
+  db.bills.forEach(b => {
+    if (isPaid(b, now)) return;
+    const d = daysUntil(b, now);
+    if (d > 1) return;
+    const k = `${b.id}-${today}`;
+    if (db.notified[k]) return;
+    db.notified[k] = true;
+    const title = d < 0 ? `Overdue: ${b.name}` : d === 0 ? `Due today: ${b.name}` : `Due tomorrow: ${b.name}`;
+    const opts = {body: `${rupees(b.amount)} · Open Ghar Kharcha to mark it paid`, tag: k, icon: 'icon-192.png'};
+    if ('serviceWorker' in navigator){
+      navigator.serviceWorker.ready
+        .then(reg => reg.showNotification(title, opts))
+        .catch(() => { try { new Notification(title, opts); } catch (e) {} });
+    } else {
+      try { new Notification(title, opts); } catch (e) {}
+    }
+  });
+  Object.keys(db.notified).forEach(k => { if (!k.endsWith(today)) delete db.notified[k]; });
+  save();
+}
+
+// ===================== Events =====================
+document.addEventListener('click', e => {
+  const tabEl = e.target.closest('[data-tab]');
+  if (tabEl){ view.tab = tabEl.dataset.tab; closeSheet(); return render(); }
+
+  const el = e.target.closest('[data-act]');
+  if (!el) return;
+  // Clicks inside the sheet should not close it; only the dark backdrop or ✕ does.
+  if (el.classList.contains('sheet-bg') && e.target !== el) return;
+
+  const act = el.dataset.act;
+  const id = Number(el.dataset.id);
+  const now = new Date();
+
+  switch (act){
+    case 'close-sheet': closeSheet(); return;
+    case 'settings': openSheet('Settings', settingsSheet()); return;
+    case 'premium': openSheet('Go Premium', premiumSheet()); return;
+    case 'unlock-test': db.premium = true; save(); closeSheet(); toast('Premium unlocked for testing'); return render();
+    case 'new-expense': openSheet('New expense', expenseForm()); return;
+    case 'new-payment': openSheet('Record payment', paymentForm()); return;
+    case 'settle': openSheet('Record payment',
+      paymentForm(Number(el.dataset.from), Number(el.dataset.to), Number(el.dataset.amount))); return;
+    case 'new-bill':
+      if (!db.premium && db.bills.length >= FREE.bills){
+        toast(`Free plan allows ${FREE.bills} bills`);
+        return openSheet('Go Premium', premiumSheet());
+      }
+      return openSheet('New bill', billForm(null));
+    case 'edit-bill': {
+      const b = db.bills.find(x => x.id === id);
+      if (b) openSheet('Edit bill', billForm(b));
+      return;
+    }
+    case 'del-bill':
+      if (confirm('Delete this bill and its paid history?')){
+        db.bills = db.bills.filter(x => x.id !== id);
+        save(); closeSheet(); toast('Bill deleted'); render();
+      }
+      return;
+    case 'pay': case 'unpay': {
+      const b = db.bills.find(x => x.id === id);
+      if (!b) return;
+      if (act === 'pay'){
+        if (!isPaid(b, now)) b.paidMonths.push(monthKey(now));
+        toast(`${b.name} marked as paid ✓`);
+      } else {
+        b.paidMonths = b.paidMonths.filter(m => m !== monthKey(now));
+      }
+      save(); return render();
+    }
+    case 'del-expense':
+      if (confirm('Delete this expense?')){
+        db.expenses = db.expenses.filter(x => x.id !== id);
+        save(); toast('Expense deleted'); render();
+      }
+      return;
+    case 'filter': view.spendFilter = el.dataset.id; return render();
+    case 'new-member':
+      if (!db.premium && db.members.length >= FREE.members) return openSheet('Go Premium', premiumSheet());
+      return openSheet('Add family member', memberForm());
+    case 'del-member': {
+      const m = memberById(id);
+      if (m && confirm(`Remove ${m.name} from the family?`)){
+        db.members = db.members.filter(x => String(x.id) !== String(id));
+        save(); render();
+      }
+      return;
+    }
+    case 'reminders-on': return enableReminders();
+    case 'reminders-off': return disableReminders();
+    case 'backup':
+      download(`ghar-kharcha-backup-${dayKey(now)}.json`, 'application/json', JSON.stringify(db, null, 2));
+      return;
+    case 'restore': $('#restore-file').click(); return;
+    case 'export':
+      if (!db.premium) return openSheet('Go Premium', premiumSheet());
+      return exportCsv();
+    case 'reset':
+      if (confirm('Erase ALL data on this device? Download a backup first.')){
+        localStorage.removeItem(KEY);
+        db = freshDb();
+        view = {tab: 'home', spendFilter: 'all', onb: 1};
+        applyTheme(); closeSheet(); render();
+      }
+      return;
+    case 'onb-skip': view.onb = 3; return render();
+    case 'finish-onb': return finishOnboarding();
+  }
+});
+
+document.addEventListener('change', async e => {
+  if (e.target.dataset && e.target.dataset.change === 'theme'){
+    db.theme = e.target.value; save(); applyTheme(); return;
+  }
+  if (e.target.id === 'restore-file'){
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      const valid = data && data.v === 2 && Array.isArray(data.members) &&
+        Array.isArray(data.bills) && Array.isArray(data.expenses) && Array.isArray(data.payments);
+      if (!valid) throw new Error('invalid');
+      db = Object.assign(freshDb(), data);
+      const ids = [...db.members, ...db.bills, ...db.expenses, ...db.payments].map(x => Number(x.id) || 0);
+      db.nextId = Math.max(0, ...ids) + 1;
+      save(); applyTheme(); closeSheet(); toast('Backup restored'); render();
+    } catch (err) {
+      toast('That file is not a Ghar Kharcha backup');
+    }
+    e.target.value = '';
+  }
+});
+
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  const form = e.target;
+  const kind = form.dataset.form;
+  const fd = new FormData(form);
+  const now = new Date();
+
+  switch (kind){
+    case 'onb1': {
+      const name = String(fd.get('me') || '').trim();
+      if (!name) return toast('Please enter your name');
+      if (!db.members.length) db.members.push({id: newId(), name, color: COLORS[0]});
+      else db.members[0].name = name;
+      db.household = String(fd.get('home') || '').trim() || `${name}'s Home`;
+      save(); view.onb = 2; return render();
+    }
+    case 'onb2': {
+      const chosen = TEMPLATES.map((t, i) => ({t, i})).filter(({i}) => fd.get('t' + i) !== null);
+      if (chosen.length > FREE.bills && !db.premium){
+        return toast(`Free plan includes ${FREE.bills} bills. Untick a few to continue.`);
+      }
+      const mk = monthKey(now);
+      chosen.forEach(({t, i}) => {
+        db.bills.push({id: newId(), name: t.name, amount: Number(fd.get('a' + i)) || 0,
+          category: t.category, dueDay: t.dueDay, paidMonths: [], createdMonth: mk});
+      });
+      save(); view.onb = 3; return render();
+    }
+    case 'onb3': {
+      const mate = String(fd.get('mate') || '').trim();
+      if (mate) db.members.push({id: newId(), name: mate, color: COLORS[1]});
+      return finishOnboarding();
+    }
+    case 'expense': {
+      const title = String(fd.get('title') || '').trim();
+      const amount = Number(fd.get('amount'));
+      const split = fd.getAll('split').map(Number);
+      if (!title || !(amount > 0)) return toast('Add a description and an amount');
+      if (!split.length) return toast('Choose at least one person to split with');
+      db.expenses.push({
+        id: newId(), title, amount,
+        category: fd.get('category'),
+        date: fd.get('date') || dayKey(now),
+        paidBy: Number(fd.get('paidBy')),
+        splitWith: split,
+        note: String(fd.get('note') || '').trim(),
+      });
+      break;
+    }
+    case 'bill': {
+      const name = String(fd.get('name') || '').trim();
+      const amount = Number(fd.get('amount'));
+      if (!name || !(amount > 0)) return toast('Check the name and amount');
+      const fields = {name, amount, category: fd.get('category'), dueDay: Number(fd.get('dueDay'))};
+      const editId = Number(form.dataset.id);
+      if (editId){
+        Object.assign(db.bills.find(x => x.id === editId), fields);
+      } else {
+        if (!db.premium && db.bills.length >= FREE.bills) return toast(`Free plan allows ${FREE.bills} bills`);
+        db.bills.push({id: newId(), ...fields, paidMonths: [], createdMonth: monthKey(now)});
+      }
+      break;
+    }
+    case 'payment': {
+      const from = Number(fd.get('from'));
+      const to = Number(fd.get('to'));
+      const amount = Number(fd.get('amount'));
+      if (!(amount > 0)) return toast('Enter an amount');
+      if (from === to) return toast('Choose two different people');
+      db.payments.push({id: newId(), from, to, amount, date: fd.get('date') || dayKey(now)});
+      break;
+    }
+    case 'member': {
+      const name = String(fd.get('name') || '').trim();
+      if (!name) return toast('Enter a name');
+      if (!db.premium && db.members.length >= FREE.members) return toast(`Free plan allows ${FREE.members} people`);
+      db.members.push({id: newId(), name, color: COLORS[db.members.length % COLORS.length]});
+      break;
+    }
+    case 'household': {
+      db.household = String(fd.get('home') || '').trim() || db.household;
+      break;
+    }
+    default: return;
+  }
+  save();
+  closeSheet();
+  render();
+});
+
+// ===================== Start =====================
+applyTheme();
+render();
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+checkReminders();
+setInterval(checkReminders, 30 * 60 * 1000);
+</script>
+</body>
+</html>

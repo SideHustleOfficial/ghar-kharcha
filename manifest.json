@@ -1,0 +1,14 @@
+{
+  "name": "Ghar Kharcha",
+  "short_name": "Ghar Kharcha",
+  "description": "Bills, due dates, shared expenses and who-owes-whom for your home.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F4F7F6",
+  "theme_color": "#0F766E",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"}
+  ]
+}
